@@ -6,11 +6,12 @@
     </head>
     <body>
       <h4><b>Welcome </b></h4>
+      <input type="submit" onclick="onBuyClicked()" value="Pay">
       <script>
         /** Launches payment request flow when user taps on buy button. */
 function onBuyClicked() {
   if (!window.PaymentRequest) {
-    console.log('Web payments are not supported in this browser.');
+    alert('Web payments are not supported in this browser.');
     return;
   }
 
@@ -35,14 +36,14 @@ function onBuyClicked() {
       label: 'Total',
       amount: {
         currency: 'INR',
-        value: '10.01', // sample amount
+        value: '10.00', // sample amount
       },
     },
     displayItems: [{
       label: 'Original Amount',
       amount: {
         currency: 'INR',
-        value: '10.01',
+        value: '10.0',
       },
     }],
   };
@@ -52,11 +53,11 @@ function onBuyClicked() {
   try {
     request = new PaymentRequest(supportedInstruments, details);
   } catch (e) {
-    console.log('Payment Request Error: ' + e.message);
+    alert('Payment Request Error: ' + e.message);
     return;
   }
   if (!request) {
-    console.log('Web payments are not supported in this browser.');
+    alert('Web payments are not supported in this browser.');
     return;
   }
 
@@ -66,8 +67,44 @@ function onBuyClicked() {
         showPaymentUI(request, result);
       })
       .catch((err) => {
-        console.log('Error calling checkCanMakePayment: ' + err);
+        alert('Error calling checkCanMakePayment: ' + err);
       });
+}
+        
+/**
+* Show the payment request UI.
+*
+* @private
+* @param {PaymentRequest} request The payment request object.
+* @param {Promise} canMakePayment The promise for whether can make payment.
+*/
+function showPaymentUI(request, canMakePayment) {
+ if (!canMakePayment) {
+   handleNotReadyToPay();
+   return;
+ }
+
+ // Set payment timeout.
+ let paymentTimeout = window.setTimeout(function() {
+   window.clearTimeout(paymentTimeout);
+   request.abort()
+       .then(function() {
+         alert('Payment timed out after 20 minutes.');
+       })
+       .catch(function() {
+         alert('Unable to abort, user is in the process of paying.');
+       });
+ }, 20 * 60 * 1000); /* 20 minutes */
+
+ request.show()
+     .then(function(instrument) {
+
+       window.clearTimeout(paymentTimeout);
+       processResponse(instrument); // Handle response from browser.
+     })
+     .catch(function(err) {
+       alert(err);
+     });
 }
       </script>
     </body>

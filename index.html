@@ -11,7 +11,7 @@
         /** Launches payment request flow when user taps on buy button. */
 function onBuyClicked() {
   if (!window.PaymentRequest) {
-    console.log('Web payments are not supported in this browser.');
+    alert('Web payments are not supported in this browser.');
     return;
   }
 

@@ -6,7 +6,7 @@
     </head>
     <body>
       <h4><b>Welcome </b></h4>
-      <input type="submit" onclick="onBuyClicked();" value="Pay">
+      <input type="button" onclick="onBuyClicked();" value="Pay">
       <script>
         /** Launches payment request flow when user taps on buy button. */
 function onBuyClicked() {
@@ -106,6 +106,57 @@ function showPaymentUI(request, canMakePayment) {
        alert(err);
      });
 }
+        
+/**
+* Process the response from browser.
+*
+* @private
+* @param {PaymentResponse} instrument The payment instrument that was authed.
+*/
+function processResponse(instrument) {
+ var instrumentString = instrumentToJsonString(instrument);
+ alert(instrumentString);
+
+ fetch('/buy', {
+   method: 'POST',
+   headers: new Headers({'Content-Type': 'application/json'}),
+   body: instrumentString,
+ })
+     .then(function(buyResult) {
+       if (buyResult.ok) {
+         return buyResult.json();
+       }
+       alert('Error sending instrument to server.');
+     })
+     .then(function(buyResultJson) {
+       completePayment(instrument, buyResultJson.status, buyResultJson.message);
+
+     })
+     .catch(function(err) {
+       alert('Unable to process payment. ' + err);
+     });
+}
+
+/**
+* Notify browser that the instrument authorization has completed.
+*
+* @private
+* @param {PaymentResponse} instrument The payment instrument that was authed.
+* @param {string} result Whether the auth was successful. Should be either
+* 'success' or 'fail'.
+* @param {string} msg The message to log in console.
+*/
+function completePayment(instrument, result, msg) {
+ instrument.complete(result)
+     .then(function() {
+       alert('Payment succeeds.');
+       alert(msg);
+     })
+     .catch(function(err) {
+       alert(err);
+     });
+}
+        
       </script>
     </body>
   </html>

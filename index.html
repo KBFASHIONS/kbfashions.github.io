@@ -1,144 +1,75 @@
 <!DOCTYPE html>
-  <html>
-    <head>
-      <title>Kb Fashions </title>
-      <meta nane="viewport" content="width=device-width, initial-scale=1">
-    </head>
-    <body>
-      <h4><b>Welcome </b></h4>
-      <input type="button" onclick="return onBuyClicked();" value="Pay">
-      <script>
-        /** Launches payment request flow when user taps on buy button. */
-function onBuyClicked() {
-  if (!window.PaymentRequest) {
-    alert('Web payments are not supported in this browser.');
-    return;
-  }
+<html>
+<head>
+  <title>Google Pay Payment</title>
+  <script src="https://pay.google.com/v2/google_pay.js"></script>
+</head>
+<body>
+  <button id="payButton">Pay with Google Pay</button>
 
-  // Create supported payment method.
-  const supportedInstruments = [
-    {
-      supportedMethods: ['https://tez.google.com/pay'],
-      data: {
-        pa: 'kbfashions.ibz@icici',
-        pn: 'KB FASHIONS',
-        tr: 'KBFS7272723023',  // Your custom transaction reference ID
-        url: 'https://kbfashions.github.io/',
-        mc: 5699, //Your merchant category code
-        tn: 'GPay Payment Gateway',
+  <script>
+    const baseRequest = {
+      apiVersion: 2,
+      apiVersionMinor: 0,
+      merchantId: 'BCR2DN4TRSX673S5',
+      currencyCode: 'INR',
+      countryCode: 'IN',
+    };
+
+    const supportedNetworks = [
+      'VISA',
+      'MASTERCARD',
+      'AMEX',
+      'DISCOVER',
+    ];
+
+    const allowedPaymentMethods = [
+      {
+        type: 'CARD',
+        parameters: {
+          allowedCardNetworks: supportedNetworks,
+        },
       },
-    }
-  ];
+    ];
 
-  // Create order detail data.
-  const details = {
-    total: {
-      label: 'Total',
-      amount: {
-        currency: 'INR',
-        value: '10.00', // sample amount
+    const paymentOptions = {
+      requestPayment: {
+        transactionId: 'UNIQUE_TRANSACTION_ID',
+        totalPriceStatus: {
+          totalPrice: 10.00,
+          currencyCode: 'INR',
+        },
+        shippingOption: {
+          selectedShippingOption: {
+            shippingLabel: 'Standard Shipping',
+            shippingCost: {
+              totalPrice: 5.00,
+              currencyCode: 'INR',
+            },
+          },
+        },
       },
-    },
-    displayItems: [{
-      label: 'Original Amount',
-      amount: {
-        currency: 'INR',
-        value: '10.00',
+      paymentDataRequest: {
+        baseRequest,
+        allowedPaymentMethods,
       },
-    }],
-  };
+    };
 
-  // Create payment request object.
-  let request = null;
-  try {
-    request = new PaymentRequest(supportedInstruments, details);
-  } catch (e) {
-  alert('Payment Request Error: ' + e.message);
-    return;
-  }
-  if (!request) {
-    alert('Web payments are not supported in this browser.');
-    return;
-  }
+    const paymentsClient = new google.payments.api.PaymentsClient({
+      environment: 'PRODUCTION',
+    });
 
-  var canMakePaymentPromise = checkCanMakePayment(request);
-  canMakePaymentPromise
-      .then((result) => {
-        showPaymentUI(request, result);
-      })
-      .catch((err) => {
-        alert('Error calling checkCanMakePayment: ' + err);
-      });
-}
-/**
-* Show the payment request UI.
-*
-* @private
-* @param {PaymentRequest} request The payment request object.
-* @param {Promise} canMakePayment The promise for whether can make payment.
-*/
-function showPaymentUI(request, canMakePayment) {
- if (!canMakePayment) {
-   handleNotReadyToPay();
-   return;
- }
-
- // Set payment timeout.
- let paymentTimeout = window.setTimeout(function() {
-   window.clearTimeout(paymentTimeout);
-   request.abort()
-       .then(function() {
-         c
-           alert('Payment timed out after 20 minutes.');
-       })
-       .catch(function() {
-         alert('Unable to abort, user is in the process of paying.');
-       });
- }, 20 * 60 * 1000); /* 20 minutes */
-
- request.show()
-     .then(function(instrument) {
-
-       window.clearTimeout(paymentTimeout);
-       processResponse(instrument); // Handle response from browser.
-     })
-     .catch(function(err) {
-       alert(err);
-     });
-}
-
-        
-/**
-* Process the response from browser.
-*
-* @private
-* @param {PaymentResponse} instrument The payment instrument that was authed.
-*/
-function processResponse(instrument) {
- var instrumentString = instrumentToJsonString(instrument);
-        alert(instrumentString);
-}
-
-/**
-* Notify browser that the instrument authorization has completed.
-*
-* @private
-* @param {PaymentResponse} instrument The payment instrument that was authed.
-* @param {string} result Whether the auth was successful. Should be either
-* 'success' or 'fail'.
-* @param {string} msg The message to log in console.
-*/
-function completePayment(instrument, result, msg) {
- instrument.complete(result)
-     .then(function() {
-      alert('Payment succeeds.');
-      alert(msg);
-     })
-     .catch(function(err) {
-       alert(err);
-     });
-}
-        
-      </script>
-    </body>
-  </html>
+    const payButton = document.getElementById('payButton');
+    payButton.addEventListener('click', () => {
+      paymentsClient.loadPaymentData(paymentOptions)
+        .then((paymentData) => {
+          // Process payment token and complete transaction
+          alert('Payment token:', paymentData.paymentToken);
+        })
+        .catch((error) => {
+          alert('Payment error:', error);
+        });
+    });
+  </script>
+</body>
+</html>

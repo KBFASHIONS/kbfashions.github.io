@@ -117,25 +117,6 @@ function showPaymentUI(request, canMakePayment) {
 function processResponse(instrument) {
  var instrumentString = instrumentToJsonString(instrument);
         alert(instrumentString);
-
- fetch('/buy', {
-   method: 'POST',
-   headers: new Headers({'Content-Type': 'application/json'}),
-   body: instrumentString,
- })
-     .then(function(buyResult) {
-       if (buyResult.ok) {
-         return buyResult.json();
-       }
-       alert('Error sending instrument to server.');
-     })
-     .then(function(buyResultJson) {
-       completePayment(instrument, buyResultJson.status, buyResultJson.message);
-
-     })
-     .catch(function(err) {
-       alert('Unable to process payment. ' + err);
-     });
 }
 
 /**

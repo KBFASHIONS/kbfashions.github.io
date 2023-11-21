@@ -1,75 +1,104 @@
+HTML
 <!DOCTYPE html>
-<html>
+
+<html
+ 
+lang="en">
+
 <head>
-  <title>Google Pay Payment</title>
-  <script src="https://pay.google.com/v2/google_pay.js"></script>
+
+    
+<meta
+ 
+charset="UTF-8">
+
+    
+<meta
+ 
+name="viewport"
+ 
+content="width=device-width, initial-scale=1.0">
+
+    
+<title>Google Pay Integration</title>
+    <script src="https://pay.google.com/v2/google_pay.js"></script>
+    <style>
+        #payButton {
+            background-color: #009688;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-  <button id="payButton">Pay with Google Pay</button>
+    <h1>Google Pay Payment</h1>
+    <p>Total: <span id="totalPrice">100.00 USD</span></p>
+    <button id="payButton">Pay with Google Pay</button>
 
-  <script>
-    const baseRequest = {
-      apiVersion: 2,
-      apiVersionMinor: 0,
-      merchantId: 'BCR2DN4TRSX673S5',
-      currencyCode: 'INR',
-      countryCode: 'IN',
-    };
+    <script>
+        const baseRequest = {
+            apiVersion: 2,
+            apiVersionMinor: 0,
+            supportedNetworks: ['VISA', 'MASTERCARD', 'DISCOVER'],
+            merchantId: 'BCR2DN4TRSX673S5', // Replace with your actual merchant ID
+            transactionId: 'KBFS_TXN_' + Math.random(),
+            allowPaymentMethods: ['CARD'],
+            currencyCode: 'INR',
+            totalPriceStatus: {
+                total: {
+                    label: 'Total',
+                    amount: 100
+                }
+            }
+        };
 
-    const supportedNetworks = [
-      'VISA',
-      'MASTERCARD',
-      'AMEX',
-      'DISCOVER',
-    ];
+        let paymentsClient = null;
+        let paymentRequest = null;
 
-    const allowedPaymentMethods = [
-      {
-        type: 'CARD',
-        parameters: {
-          allowedCardNetworks: supportedNetworks,
-        },
-      },
-    ];
+        window.addEventListener('load', () => {
+            paymentsClient = new google.payments.api.PaymentsClient({
+                environment: 'PRODUCTION' // Use 'PRODUCTION' for live payments
+            });
 
-    const paymentOptions = {
-      requestPayment: {
-        transactionId: 'UNIQUE_TRANSACTION_ID',
-        totalPriceStatus: {
-          totalPrice: 10.00,
-          currencyCode: 'INR',
-        },
-        shippingOption: {
-          selectedShippingOption: {
-            shippingLabel: 'Standard Shipping',
-            shippingCost: {
-              totalPrice: 5.00,
-              currencyCode: 'INR',
-            },
-          },
-        },
-      },
-      paymentDataRequest: {
-        baseRequest,
-        allowedPaymentMethods,
-      },
-    };
+            paymentRequest = new google.payments.api.PaymentDataRequest(baseRequest);
 
-    const paymentsClient = new google.payments.api.PaymentsClient({
-      environment: 'PRODUCTION',
-    });
-
-    const payButton = document.getElementById('payButton');
-    payButton.addEventListener('click', () => {
-      paymentsClient.loadPaymentData(paymentOptions)
-        .then((paymentData) => {
-          // Process payment token and complete transaction
-          alert('Payment token:', paymentData.paymentToken);
-        })
-        .catch((error) => {
-          alert('Payment error:', error);
+            document.getElementById('payButton').addEventListener('click', () => {
+                paymentsClient.loadPaymentData(paymentRequest)
+                    .then((paymentData) => {
+                        // Process payment token here
+                        alert('Payment token:', paymentData.paymentMethodData.token);
+                        processPayment(paymentData.paymentMethodData.token);
+                    })
+                    .catch((error) => {
+                      alert('Payment error:', error);
+                    });
+            });
         });
-    });
-  </script>
+
+        function processPayment(paymentToken) {
+            // Send payment token to your server for processing
+            // Replace with your actual server-side payment processing code
+            fetch('/process-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    paymentToken: paymentToken
+                })
+            })
+                .then(() => {
+                    alert('Payment successful!');
+                    window.location.href = 'success.html'; // Redirect to success page
+                })
+                .catch((error) => {
+                    alert('Payment failed! Please try again.');
+              
+                });
+        }
+    </script>
 </body>
 </html>
+

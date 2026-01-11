@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KBPA | Premium Payment Collection</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #fafafa; color: #111; }
+        .select-none { user-select: none; -webkit-user-select: none; }
+        
+        /* Smooth Sidebar */
+        #sidebar { 
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
+            transform: translateX(-100%);
+        }
+        #sidebar.sidebar-open { transform: translateX(0); }
+
+        /* Modern Loader */
+        #kbpa-loader {
+            position: fixed; inset: 0; background: #fff; z-index: 1000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 3px solid #f3f3f3;
+            border-top: 3px solid #111; border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Luxury Hero Background */
+        .hero-section {
+            background: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.85)), 
+                        url('https://images.unsplash.com/photo-1556742111-a301076d9d18?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body class="select-none overflow-x-hidden">
+
+    <div id="kbpa-loader">
+        <div class="spinner"></div>
+        <p class="mt-4 text-[10px] font-bold tracking-[0.3em] uppercase">Initializing KBPA</p>
+    </div>
+
+    <aside id="sidebar" class="fixed top-0 left-0 h-full w-full md:w-96 bg-white/90 backdrop-blur-xl z-[100] border-r border-gray-100 p-12 flex flex-col shadow-2xl">
+        <div class="flex justify-between items-center mb-20">
+            <span class="text-2xl font-black tracking-tighter">KBPA.</span>
+            <button onclick="toggleSidebar()" class="p-2 hover:bg-gray-100 rounded-full transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <nav class="space-y-8">
+            <button onclick="showDoc('about')" class="block text-4xl font-extrabold hover:text-gray-400 transition">Info</button>
+            <button onclick="showDoc('privacy')" class="block text-4xl font-extrabold hover:text-gray-400 transition">Safety</button>
+            <button onclick="showDoc('terms')" class="block text-4xl font-extrabold hover:text-gray-400 transition">Rules</button>
+            <button onclick="showDoc('contact')" class="block text-4xl font-extrabold hover:text-gray-400 transition">Support</button>
+        </nav>
+    </aside>
+
+    <div id="modal" class="fixed inset-0 z-[110] hidden items-center justify-center p-6 bg-black/5 backdrop-blur-md">
+        <div class="bg-white rounded-[2.5rem] p-12 max-w-lg w-full shadow-2xl relative">
+            <div id="modalBody" class="text-gray-600 leading-relaxed font-semibold"></div>
+            <button onclick="closeModal()" class="mt-10 w-full py-4 bg-black text-white font-bold rounded-2xl hover:bg-gray-800 transition">Acknowledge</button>
+        </div>
+    </div>
+
+    <nav class="fixed top-0 w-full z-50 bg-white/60 backdrop-blur-md border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-8 h-20 flex justify-between items-center">
+            <button onclick="toggleSidebar()" class="flex items-center gap-3">
+                <div class="space-y-1.5">
+                    <span class="block w-6 h-0.5 bg-black"></span>
+                    <span class="block w-4 h-0.5 bg-black"></span>
+                </div>
+                <span class="text-[10px] font-bold tracking-widest uppercase">Menu</span>
+            </button>
+            <span class="text-2xl font-black tracking-tighter italic">KBPA</span>
+            <button onclick="showDoc('contact')" class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-black">Help</button>
+        </div>
+    </nav>
+
+    <section class="hero-section min-h-screen flex flex-col items-center justify-center text-center px-8">
+        <h1 id="hero-title" class="text-6xl md:text-[8rem] font-extrabold leading-[0.9] tracking-tighter mb-8 opacity-0">
+            Payment <br> <span class="text-gray-300">Simplified.</span>
+        </h1>
+        <p id="hero-sub" class="max-w-xl text-lg md:text-xl font-medium text-gray-500 mb-16 opacity-0">
+            A boutique collection tool for modern merchants. <br> No order logs. No inventory bloat. Just direct pay.
+        </p>
+
+        <div id="hero-cards" class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl opacity-0">
+            <div onclick="showDoc('about')" class="glass-card p-10 rounded-[2.5rem] text-left cursor-pointer">
+                <div class="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center mb-6">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <h3 class="text-2xl font-extrabold mb-3">Direct Pay</h3>
+                <p class="text-sm font-medium text-gray-500 leading-relaxed">Collect money instantly with zero friction. One tap, one payout.</p>
+            </div>
+            <div onclick="showDoc('terms')" class="glass-card p-10 rounded-[2.5rem] text-left cursor-pointer">
+                <div class="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center mb-6">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 11h14a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2z"/></svg>
+                </div>
+                <h3 class="text-2xl font-extrabold mb-3">No Orders</h3>
+                <p class="text-sm font-medium text-gray-500 leading-relaxed">We don't track packages. We focus on getting you paid safely and fast.</p>
+            </div>
+            <div onclick="showDoc('privacy')" class="glass-card p-10 rounded-[2.5rem] text-left cursor-pointer">
+                <div class="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center mb-6">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </div>
+                <h3 class="text-2xl font-extrabold mb-3">Safe Flow</h3>
+                <p class="text-sm font-medium text-gray-500 leading-relaxed">Automated data clearing after every transaction. Your business is your own.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-white border-t border-gray-100 pt-32 pb-16 px-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-16">
+            <div class="max-w-md">
+                <h2 class="text-5xl font-extrabold tracking-tighter mb-8">KBPA.</h2>
+                <p class="text-lg font-medium text-gray-400 leading-relaxed">Redefining how modern shops collect money through direct-pay tools.</p>
+            </div>
+            <div class="bg-gray-50 p-10 rounded-[2.5rem] w-full md:w-96">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4">Network Snapshot</p>
+                <div id="user-ip" class="text-3xl font-extrabold text-black tracking-tighter italic">Scanning...</div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto mt-24 pt-10 border-t border-gray-50 flex justify-between text-[10px] font-bold text-gray-300 uppercase tracking-[0.3em]">
+            <p>© 2026 KBPA APPLICATIONS</p>
+            <div class="flex gap-10">
+                <button onclick="showDoc('privacy')" class="hover:text-black transition">Safety</button>
+                <button onclick="showDoc('terms')" class="hover:text-black transition">Rules</button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('sidebar-open'); }
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+        const docs = {
+            about: `<h2 class="text-3xl font-extrabold mb-4 uppercase">Our App</h2>KBPA is built for speed. It allows you to take payments in your store or online without the headache of managing shipping labels or order status. It is a direct financial bridge for the modern merchant.`,
+            privacy: `<h2 class="text-3xl font-extrabold mb-4 uppercase">Safety</h2>We don't save your customer's shopping habits. Once the pay is done, the data is wiped from our memory. We focus on transaction integrity, not user tracking.`,
+            terms: `<h2 class="text-3xl font-extrabold mb-4 uppercase">Rules</h2><b>NO ORDERS:</b> We move money; we don't track packages. All sales are final settlements between you and your customer. KBPA is a collection utility only.`,
+            contact: `<h2 class="text-3xl font-extrabold mb-4 uppercase">Support</h2>Email us at <b>HELP@KBPA.APP</b>. We offer around-the-clock technical assistance for all merchant nodes.`
+        };
+
+        function showDoc(id) {
+            document.getElementById('modalBody').innerHTML = docs[id];
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+            if(window.innerWidth < 768 && document.getElementById('sidebar').classList.contains('sidebar-open')) toggleSidebar();
+        }
+
+        async function getIP() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                document.getElementById('user-ip').innerText = data.ip;
+            } catch { document.getElementById('user-ip').innerText = '152.59.198.213'; }
+        }
+        getIP();
+
+        window.addEventListener('load', () => {
+            gsap.to("#kbpa-loader", { opacity: 0, duration: 0.8, onComplete: () => {
+                document.getElementById('kbpa-loader').style.display = 'none';
+                const tl = gsap.timeline();
+                tl.to("#hero-title", { opacity: 1, y: -20, duration: 1.2, ease: "power4.out" })
+                  .to("#hero-sub", { opacity: 1, y: -20, duration: 1, ease: "power3.out" }, "-=0.8")
+                  .to("#hero-cards", { opacity: 1, y: -20, duration: 1, ease: "power3.out" }, "-=0.8");
+            }});
+        });
+    </script>
+</body>
+</html>
